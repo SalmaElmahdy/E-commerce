@@ -1,4 +1,6 @@
 from django.shortcuts import get_object_or_404, render
+from cart.models import Cart_Item
+from cart.views import _cart_id
 from category.models import Category
 
 from store.models import Product
@@ -25,11 +27,13 @@ def product_detail(request,category_slug,product_slug):
     # we use category__slug as it get category model and get slug in the category model
     try:
         product=Product.objects.get(category__slug=category_slug,slug=product_slug)
+        in_cart=Cart_Item.objects.filter(cart__cart_id=_cart_id(request),product=product).exists()
     except Exception as e:
         raise e
     
     
     context={
-        'product':product
+        'product':product,
+        'in_cart':in_cart
     }
     return render(request,'store/product_detail.html',context)
