@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from cart.models import Cart_Item
 from cart.views import _cart_id
 from category.models import Category
-
+from django.core.paginator import Paginator
 from store.models import Product
 
 # Create your views here.
@@ -16,8 +16,15 @@ def store(request,category_slug=None):
     else:
         products=Product.objects.filter(is_available=True)
         product_count=products.count()
+    
+    # apply paginator on result data    
+    paginator=Paginator(products,2)
+    # get page number from url as its write [/?page=2]
+    page=request.GET.get('page')
+    # get product in specific page number
+    paged_products=paginator.get_page(page)
     context={
-        'products':products,
+        'products':paged_products,
         'product_count':product_count
     }
     return render(request,'store/store.html',context)
