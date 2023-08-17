@@ -17,8 +17,8 @@ def store(request,category_slug=None):
         products=Product.objects.filter(is_available=True)
         product_count=products.count()
     
-    # apply paginator on result data    
-    paginator=Paginator(products,2)
+    # apply paginator on result data but the data should be ordered bc it gives me warning  
+    paginator=Paginator(products.order_by('id'),2)
     # get page number from url as its write [/?page=2]
     page=request.GET.get('page')
     # get product in specific page number
