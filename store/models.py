@@ -23,3 +23,19 @@ class Product(models.Model):
     # get details for single product
     def get_url(self):
         return reverse('product_detail',args=[self.category.slug,self.slug])
+    
+variation_category_choice=[
+    ('color','color'),
+    ('size','size'),
+]
+class Variation(models.Model):
+    product=models.ForeignKey(Product,on_delete=models.CASCADE)
+    variation_category=models.CharField(max_length=100,choices=variation_category_choice)
+    variation_values=models.CharField(max_length=100)
+    is_active=models.BooleanField(default=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
+    
+    def __unicode__(self):
+        return self.product
+    
