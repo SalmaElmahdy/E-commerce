@@ -1,0 +1,27 @@
+# Ignore Python bytecode files
+__pycache__/
+*.py[cod]
+
+# Ignore the virtual environment
+venv/
+env/
+
+# Ignore local development settings
+*.sqlite3
+*.env
+
+# Ignore static and media files (if they are managed by Django)
+staticfiles/
+media/
+
+# Ignore the secret key file (if it is stored separately)
+secrets.json
+
+# Ignore IDE and editor-specific files
+.vscode/
+.idea/
+*.sublime-*
+
+# Ignore logs and other generated files
+logs/
+*.log
