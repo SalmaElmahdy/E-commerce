@@ -85,11 +85,11 @@ def _add_product_to_cart(product,cart,product_variation):
         ).exists()
     
     if is_cart_item_exists:
-        _create_or_update_item(product,cart,product_variation)
+        _create_or_update_item(product,product_variation,cart)
     else:
-       _create_cart_item(product,product_variation)
+       _create_cart_item(product,product_variation,cart)
    
-def _create_or_update_item(product,cart,product_variation):
+def _create_or_update_item(product,product_variation,cart):
     cart_item=Cart_Item.objects.filter(product=product,cart=cart)
     ex_var_list=[]
     id=[]
@@ -104,9 +104,9 @@ def _create_or_update_item(product,cart,product_variation):
         item.quantity+=1
         item.save()
     else: 
-        _create_cart_item(product,product_variation)
+        _create_cart_item(product,product_variation,cart)
 
-def _create_cart_item(product,product_variation):
+def _create_cart_item(product,product_variation,cart):
     cart_item=Cart_Item.objects.create(
         product=product,
         quantity=1,
