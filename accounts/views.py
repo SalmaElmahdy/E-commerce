@@ -4,6 +4,8 @@ from django.shortcuts import redirect, render
 from accounts.forms import RegisterationForm
 from accounts.models import Account
 from django.contrib import messages,auth
+from django.contrib.auth.decorators import login_required
+
 # Create your views here.
 def register(request):
     if request.method =='POST':
@@ -45,5 +47,9 @@ def login(request):
            
     return render(request,'accounts/login.html')
 
+@login_required(login_url = "login")
 def logout(request):
-    return
+    auth.logout(request)
+    messages.success(request,"You are Logged Out Successfully")
+    
+    return redirect('login')
