@@ -24,3 +24,15 @@ class RegisterationForm(forms.ModelForm):
         self.fields['email'].widget.attrs['placeholder']='Enter Email Address'
         for field in self.fields:
             self.fields[field].widget.attrs['class']='form-control'
+    
+    # validate input form data
+    # note: there are two types of errors field error and none field error in below function we use 
+    #       none field error as we raise the excetion manualy
+    # ex: [ form.errors ] -> that display none field errors and [ form.none_field_errors]
+    
+    def clean(self):
+        clean_data= super(RegisterationForm,self).clean()
+        password=clean_data.get('password')
+        confirm_password=clean_data.get('confirm_password')
+        if password!= confirm_password:
+            raise forms.ValidationError("Password does not match.")
