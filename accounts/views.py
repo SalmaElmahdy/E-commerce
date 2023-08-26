@@ -67,12 +67,7 @@ def dashboard(request):
 
 
 def activate(request,uidb64,token):
-    try:
-        uid=urlsafe_base64_decode(uidb64).decode()
-        user=Account._default_manager.get(pk=uid)
-    except(TypeError,ValueError,OverflowError,Account.DoesNotExist):
-        user= None
-        
+    user =_get_user(uidb64)     
     if user is not None and default_token_generator.check_token(user,token):
         user.is_active=True
         user.save()
@@ -81,6 +76,48 @@ def activate(request,uidb64,token):
     
     messages.error(request,'Invalid activation link')
     return redirect('register')
+
+
+def forgot_password(request):
+    if request.method == 'POST':
+        email=request.POST['email']
+        if Account.objects.filter(email=email).exists():
+            user=Account.objects.get(email__exact=email)
+            _change_password_mail(request,user)
+            messages.success(request,'Password reset email has been sent to your email address.')
+            return redirect('login')
+        else:
+            messages.error(request,'Account does not exists!')
+    return render(request,'accounts/forgot_password.html')
+
+
+
+def reset_password(request,uidb64,token):
+    user=_get_user(uidb64)
+    if user is not None and default_token_generator.check_token(user,token):
+        request.session['uid']=user.pk
+        messages.success(request,'Please reset your password')
+        return redirect('reset_password_page')
+    
+    messages.error(request,'This link has been expired!')
+    return redirect('login')
+    
+def reset_password_page(request):
+    if request.method == 'POST':
+        password=request.POST['password']
+        confirm_password=request.POST['confirm_password']
+        if password == confirm_password:
+            uid=request.session.get('uid')
+            user=Account.objects.get(pk=uid)
+            user.set_password(password)
+            user.save()
+            messages.success(request,'Password reset successfully!')
+            return redirect('login')
+        else:
+            messages.error(request,"Passwords do not match!")
+            return redirect('reset_password_page')
+        
+    return render(request,'accounts/reset_password_page.html')
 
 
 
@@ -99,10 +136,38 @@ def _create_user(form):
 
 
 
+
+def _get_user(uidb64):
+    try:
+        uid=urlsafe_base64_decode(uidb64).decode()
+        user=Account._default_manager.get(pk=uid)
+    except(TypeError,ValueError,OverflowError,Account.DoesNotExist):
+        user= None
+    return user
+
+
+
+
 def _send_user_activation_mail(request,user):
     current_site=get_current_site(request)
     mail_subject='Please activate your account'
-    message= render_to_string('accounts/account_verification_email.html',{
+    message= render_to_string('mails/account_verification_email.html',{
+        'user':user,
+        'domain':current_site,
+        'uid':urlsafe_base64_encode(force_bytes(user.pk)),
+        'token':default_token_generator.make_token(user),
+    })
+    to_email=user.email
+    send_email=EmailMessage(mail_subject,message,to=[to_email])
+    send_email.send()
+    
+    
+    
+    
+def _change_password_mail(request,user):
+    current_site=get_current_site(request)
+    mail_subject='Please reset your password'
+    message= render_to_string('mails/reset_password.html',{
         'user':user,
         'domain':current_site,
         'uid':urlsafe_base64_encode(force_bytes(user.pk)),
