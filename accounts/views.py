@@ -43,7 +43,8 @@ def login(request):
         user=auth.authenticate(email=email,password=password)
         if user !=None:
             auth.login(request,user)
-            return redirect('home')
+            messages.success(request,'You are Loged in!')
+            return redirect('dashboard')
         else:
             messages.error(request,'Invalid Login credentials')
            
@@ -57,6 +58,13 @@ def logout(request):
     messages.success(request,"You are Logged Out Successfully")
     
     return redirect('login')
+
+
+
+@login_required(login_url = "login")
+def dashboard(request):
+    return render(request,'accounts/dashboard.html')
+
 
 def activate(request,uidb64,token):
     try:
