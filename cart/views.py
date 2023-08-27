@@ -60,6 +60,32 @@ def remove_cart_item(request,product_id,cart_item_id):
     return redirect('cart')
 
 
+
+def checkout(request,total=0,quantity=0,cart_items=None):
+    grant_total=0
+    tax=0
+    try:
+        cart=Cart.objects.get(cart_id=_cart_id(request))
+        cart_items=Cart_Item.objects.filter(cart=cart,is_active=True)
+        for item in cart_items:
+            total+=(item.product.price * item.quantity)
+            quantity+=item.quantity
+        tax=(2*total)/100
+        grant_total=total+tax
+    except ObjectDoesNotExist:
+        pass # just ignore
+    
+    context={
+        'total':total,
+        'quantity':quantity,
+        'cart_items':cart_items,
+        'tax':tax,
+        'grant_total':grant_total,
+    }
+    return render(request,'store/checkout.html',context=context)
+
+
+
 # make private function to get cart id
 def _cart_id(request):
     cart=request.session.session_key
