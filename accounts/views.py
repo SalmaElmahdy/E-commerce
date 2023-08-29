@@ -14,6 +14,10 @@ from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.core.mail import EmailMessage
 
+from cart.models import Cart, Cart_Item
+from cart.views import _cart_id
+import requests
+
 # Create your views here.
 def register(request):
     if request.method =='POST':
@@ -42,16 +46,78 @@ def login(request):
         password=request.POST['password']
         user=auth.authenticate(email=email,password=password)
         if user !=None:
+            _transfer_cart_items_to_user(request,user)
             auth.login(request,user)
             messages.success(request,'You are Loged in!')
-            return redirect('dashboard')
+            # get the previous url from where i came
+            url= request.META.get('HTTP_REFERER')
+            try:
+                query=requests.utils.urlparse(url).query
+                # query-> next=/cart/checkout/
+                params = dict(x.split('=') for x in query.split('&'))
+                # params-> {'next': '/cart/checkout/'}
+                if 'next' in params:
+                    next_page=params['next']
+                    return redirect(next_page)
+            except:
+                return redirect('dashboard')
+            
         else:
             messages.error(request,'Invalid Login credentials')
            
     return render(request,'accounts/login.html')
 
 
+def _transfer_cart_items_to_user(request,user):
+    
+    try:
+        cart=Cart.objects.get(cart_id=_cart_id(request))
+        is_cart_item_exists=Cart_Item.objects.filter(cart=cart).exists()
+        if is_cart_item_exists:
+           _create_or_update_user_cart(request,cart,user)
+        else:
+            cart_item=Cart_Item.objects.filter(cart=cart)
+            for item in cart_item:
+                item.user=user
+                item.save()
+    except:
+        pass
 
+def _create_or_update_user_cart(request,cart,user):
+    
+    cart_item=Cart_Item.objects.filter(cart=cart)
+    # get product variation by cart 
+    product_variation=[]
+    for item in cart_item:
+        variation=item.variations.all()
+        product_variation.append(list(variation))
+    
+    # get cart items for logged in user to access his product variation
+    cart_item=Cart_Item.objects.filter(user=user)
+    ex_var_list=[]
+    id=[]
+    for item in cart_item:
+        existing_variation= item.variations.all()
+        ex_var_list.append(list(existing_variation))
+        id.append(item.id)
+    
+    # if product variation found in ex_var_list increase quantity
+    for pr in product_variation:
+        if pr in ex_var_list:
+            index=ex_var_list.index(pr)
+            item_id=id[index]
+            item=Cart_Item.objects.get(id=item_id)
+            item.quantity += 1
+            item.user=user
+            item.save()
+        else:
+            cart_item=Cart_Item.objects.filter(cart=cart)
+            for item in cart_item:
+                item.user=user
+                item.save()
+                        
+                        
+                        
 @login_required(login_url = "login")
 def logout(request):
     auth.logout(request)
@@ -133,7 +199,6 @@ def _create_user(form):
     user.phone_number=phone_number
     user.save()
     return user
-
 
 
 
