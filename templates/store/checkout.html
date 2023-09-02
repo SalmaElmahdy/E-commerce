@@ -55,7 +55,7 @@
                             </table>
                         </div> <!-- card-body.// -->
                     </div> 
-                    <form action="" method="POST" class="my-4" >
+                    <form action="{% url 'place_order' %}" method="POST" class="my-4" >
                         {% csrf_token %}
                         <div>
                             <div class="form-row">
@@ -99,7 +99,7 @@
                                 </div>
                                 <div class="col form-group">
                                     <label>Country</label>
-                                    <input type="text" name="country" class="form-control" required>
+                                    <input type="text" name="counter" class="form-control" required>
                                 </div>
                             </div>
                             <div class="form-row">
