@@ -14,6 +14,7 @@
                   Billing Address
                 </div>
                 <div class="card-body">
+                  <p class="card-text mb-0">{{order.order_number}}</p>
                   <p class="card-text mb-0">{{order.full_name}}.</p>
                   <p class="card-text mb-0">{{order.full_address}}.</p>
                   <p class="card-text mb-0">{{order.email}}.</p>
@@ -104,7 +105,7 @@
                 <p class="text-center mb-3">
                     <img src="{% static './images/misc/payments.png' %}" height="26">
                 </p>
-                <a href="{% url 'checkout' %}" class="btn btn-primary btn-block"> Make Payment </a>
+                <a href="{% url 'payment' order.order_number %}" class="btn btn-primary btn-block"> Make Payment </a>
             </div> <!-- card-body.// -->
             </div> <!-- card.// -->
     
