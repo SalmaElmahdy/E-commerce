@@ -1,0 +1,21 @@
+# pytest
+
+>> coverage run -m pytest 
+"Use the coverage tool to run the pytest module with coverage analysis."
+This command will execute your Python tests using pytest while tracking which parts of your code are being executed.
+After the tests are complete, you can generate a coverage report to see the percentage of code coverage and identify
+areas that might need more testing.
+
+
+>> coverage html
+create new folder called htmlcov which contain "index.html" file  which told what tests need to be run
+
+
+>> pytest --cov    
+show above report in terminal instead of in index.html
+
+
+# activate enviroment 
+
+on terminal :
+>> & d:/backend/python/E-commerce/env/Scripts/Activate.ps1
