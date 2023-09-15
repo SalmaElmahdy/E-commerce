@@ -1,12 +1,25 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
-
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 # refactor admin model to use email for auth instead of username
 class MyAccountManager(BaseUserManager):
+    
+    def validateEmail(self,email):
+        try:
+            validate_email(email)
+        except ValidationError:
+            raise ValueError('please enter valid email')
+        
+        
     # creating normal user
     def create_user(self,first_name,last_name,username,email,password=None):
         if not email:
             raise ValueError('user must have an email address')
+        else:
+            email= self.normalize_email(email)
+            self.validateEmail(email)
+            
         if not username:
             raise ValueError('user must have an username')
         user=self.model(
@@ -22,6 +35,13 @@ class MyAccountManager(BaseUserManager):
     
     # create superuser
     def create_superuser(self,first_name,last_name,email,username, password):
+        if not email:
+            raise ValueError('user must provide valid email')
+        else:
+            email= self.normalize_email(email)
+            self.validateEmail(email)
+            
+                    
         user =self.create_user(
             first_name=first_name,
             last_name=last_name,
