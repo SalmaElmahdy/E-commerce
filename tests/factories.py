@@ -1,4 +1,5 @@
 import factory
+from accounts.models import Account
 from category.models import Category
 from store.models import Product, Variation
 from factory import  SubFactory,Faker
@@ -34,6 +35,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
     # I used that for creation method if i wanted to handle exception of create
     # not unique values for product_name and slug but i handeled it with django_get_or_create
     # as it is not create the same object twice its just create one so no exception of uniqueness
+    # to see details about @classmethod see below comments ->
     
     # @classmethod
     # def _create(cls, model_class, *args, **kwargs):
@@ -55,7 +57,35 @@ class VariationFactory(factory.django.DjangoModelFactory):
     variation_category = factory.Iterator([choice[0] for choice in Variation.variation_category_choice])
     variation_values = factory.Faker('word')
     is_active = True
+
+
     
+####
+# Account
+###
+class AccountFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Account
+        
+    first_name = Faker('first_name')
+    last_name = Faker('last_name')
+    # username  = factory.sequence(lambda n: f'user{n}') # Generates unique usernames like user1, user2, ...
+    # email = factory.Sequence(lambda n: f'user{n}@example.com')  # Generates unique email
+    # i decided to use fixed value so i could compare use it 
+    
+    username='user1'
+    email='user1@example.com'
+    password= Faker('password')
+        
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        manager=cls._get_manager(model_class)
+        is_superadmin=kwargs.pop("is_superadmin", False)
+        if is_superadmin:
+            return manager.create_superuser(*args,**kwargs)
+        else:
+            return manager.create_user(*args,**kwargs)
+
     
      
 # In the provided factory code,

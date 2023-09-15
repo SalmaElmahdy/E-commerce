@@ -29,7 +29,6 @@ def register(request):
             return redirect('/account/login/?command=verification&email='+user.email)
         else:
             messages.error(request,form['email'].errors)
-        
     else:
         form=RegisterationForm()
         
