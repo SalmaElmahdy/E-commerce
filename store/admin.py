@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Product, Variation
+from .models import Product, ReviewRating, Variation
 
 # populate the slug
 class ProductAdmin(admin.ModelAdmin):
@@ -14,3 +14,4 @@ class VariationAdmin(admin.ModelAdmin):
     list_filter=('product','variation_category','variation_values')
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Variation,VariationAdmin)
+admin.site.register(ReviewRating)
