@@ -18,13 +18,37 @@ from cart.models import Cart, Cart_Item
 from cart.views import _cart_id
 import requests
 
+import threading
+
+class HandleAcitvationMail(threading.Thread):
+    def __init__(self,request,user):
+        self.request=request
+        self.user=user
+        
+        threading.Thread.__init__(self)
+    
+    def run(self):
+        current_site=get_current_site(self.request)
+        mail_subject='Please activate your account'
+        message= render_to_string('mails/account_verification_email.html',{
+            'user':self.user,
+            'domain':current_site,
+            'uid':urlsafe_base64_encode(force_bytes(self.user.pk)),
+            'token':default_token_generator.make_token(self.user),
+        })
+        to_email=self.user.email
+        send_email=EmailMessage(mail_subject,message,to=[to_email])
+        send_email.send()
+
 # Create your views here.
 def register(request):
     if request.method =='POST':
         form =RegisterationForm(request.POST)
         if form.is_valid():
             user= _create_user(form)
-            _send_user_activation_mail(request,user)
+            # _send_user_activation_mail(request,user)
+            HandleAcitvationMail(request,user).start()
+            # used threads to improve performance of request
             # messages.success(request, "Thanks for registering with us. We have send you a verification email to {{user.email}}, Please verify it")
             return redirect('/account/login/?command=verification&email='+user.email)
         else:
@@ -212,18 +236,18 @@ def _get_user(uidb64):
 
 
 
-def _send_user_activation_mail(request,user):
-    current_site=get_current_site(request)
-    mail_subject='Please activate your account'
-    message= render_to_string('mails/account_verification_email.html',{
-        'user':user,
-        'domain':current_site,
-        'uid':urlsafe_base64_encode(force_bytes(user.pk)),
-        'token':default_token_generator.make_token(user),
-    })
-    to_email=user.email
-    send_email=EmailMessage(mail_subject,message,to=[to_email])
-    send_email.send()
+# def _send_user_activation_mail(request,user):
+#     current_site=get_current_site(request)
+#     mail_subject='Please activate your account'
+#     message= render_to_string('mails/account_verification_email.html',{
+#         'user':user,
+#         'domain':current_site,
+#         'uid':urlsafe_base64_encode(force_bytes(user.pk)),
+#         'token':default_token_generator.make_token(user),
+#     })
+#     to_email=user.email
+#     send_email=EmailMessage(mail_subject,message,to=[to_email])
+#     send_email.send()
     
     
     
