@@ -16,3 +16,4 @@ class OrderForm(forms.ModelForm):
             'city',
             'order_note'
         ]
+        
