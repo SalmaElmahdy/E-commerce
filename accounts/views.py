@@ -1,8 +1,10 @@
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
-from accounts.forms import RegisterationForm
-from accounts.models import Account
+from accounts.forms import RegisterationForm, UserForm, UserProfileForm
+from accounts.models import Account, UserProfile
+from decorators.decorators import passwords_match_validator
+from order.models import Order, OrderProduct
 from django.contrib import messages,auth
 from django.contrib.auth.decorators import login_required
 
@@ -40,12 +42,64 @@ class HandleAcitvationMail(threading.Thread):
         send_email=EmailMessage(mail_subject,message,to=[to_email])
         send_email.send()
 
+@login_required(login_url="login")
+@passwords_match_validator
+def change_password(request):
+    if request.method == "POST":
+        current_password = request.POST['current_password']
+        new_password = request.POST['password']
+        user = Account.objects.get(username__exact=request.user.username)
+        user.set_password(new_password)
+        user.save()
+        messages.success(request,"Password updated successfully.")
+        return redirect('change_password')
+    return render(request,'accounts/change_password.html')
+    
+
+@login_required(login_url="login")
+def order_detail(request,order_id):
+    order_detail=OrderProduct.objects.filter(order__order_number=order_id)
+    order=Order.objects.get(order_number=order_id)
+    sub_total=0
+    for i in order_detail:
+        sub_total += i.product_price* i.quantity
+    context={
+        'order_detail':order_detail,
+        'order':order,
+        'sub_total':sub_total
+    }
+    
+    return render(request,'accounts/order_detail.html',context)  
+    
+def edit_profile(request):
+    userProfile=get_object_or_404(UserProfile,user=request.user)
+    if request.method == 'POST':
+        user_form = UserForm(request.POST,instance=request.user)
+        profile_form=UserProfileForm(request.POST,request.FILES,instance=userProfile)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request,'Your profile has been updated.')
+            return redirect('edit_profile')
+    else:
+        user_form = UserForm(instance=request.user)
+        profile_form= UserProfileForm(instance=userProfile)
+        
+    context={
+        'user_form':user_form,
+        'profile_form':profile_form,
+        'user_profile':userProfile
+    }
+    return render(request,'accounts/edit_profile.html',context)
+
 # Create your views here.
+@passwords_match_validator
 def register(request):
     if request.method =='POST':
         form =RegisterationForm(request.POST)
         if form.is_valid():
             user= _create_user(form)
+            _add_user_profile_data(user)
             # _send_user_activation_mail(request,user)
             HandleAcitvationMail(request,user).start()
             # used threads to improve performance of request
@@ -89,6 +143,14 @@ def login(request):
             messages.error(request,'Invalid Login credentials')
            
     return render(request,'accounts/login.html')
+
+@login_required(login_url="login")
+def my_orders(request):
+    orders=Order.objects.filter(user=request.user,is_ordered=True).order_by('-created_at')
+    context={
+        'orders':orders
+    }
+    return render(request,'accounts/my_order.html',context)
 
 
 def _transfer_cart_items_to_user(request,user):
@@ -152,7 +214,12 @@ def logout(request):
 
 @login_required(login_url = "login")
 def dashboard(request):
-    return render(request,'accounts/dashboard.html')
+    orders= Order.objects.order_by('created_at').filter(user_id=request.user.id,is_ordered=True)
+    order_count=orders.count()
+    context={
+        'order_count':order_count
+    }
+    return render(request,'accounts/dashboard.html',context)
 
 
 def activate(request,uidb64,token):
@@ -190,6 +257,7 @@ def reset_password(request,uidb64,token):
     
     messages.error(request,'This link has been expired!')
     return redirect('login')
+
     
 def reset_password_page(request):
     if request.method == 'POST':
@@ -223,7 +291,11 @@ def _create_user(form):
     user.save()
     return user
 
-
+def _add_user_profile_data(user):
+    profile = UserProfile()
+    profile.user_id = user.id
+    profile.profile_picture = 'default/default-user.jpg'
+    profile.save()
 
 def _get_user(uidb64):
     try:
