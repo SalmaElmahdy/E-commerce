@@ -1,10 +1,10 @@
-# E-Commerce Website with Django
+# :handbag: E-Commerce Website with Django 
 
-## Description
+## :memo:  Description
 
 This is an e-commerce website built using Django, which provides a range of features including user authentication, authorization, email verification, password reset, product management, reviews, ratings, shopping cart, and order history.
 
-## Features
+## :white_check_mark: Features
 
 ### User Authentication and Authorization
 
@@ -38,7 +38,7 @@ This is an e-commerce website built using Django, which provides a range of feat
 
 - Users can complete their purchase and view their order history.
 
-## Getting Started
+## :information_desk_person: Getting Started
 
 1. Clone the repository.
 2. Use git bash to activate that environment
@@ -53,5 +53,6 @@ This is an e-commerce website built using Django, which provides a range of feat
 
 1. Create a superuser to access the admin panel by type in terminal: `python manage.py createsuperuser`.
 2. Log in to the admin panel at `http://localhost:8000/admin` to manage products and user accounts.
+3. create and login to user panel at `http://localhost:8000/` to manage your profile and add items to your cart
 
 
