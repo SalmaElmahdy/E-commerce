@@ -55,11 +55,7 @@ This is an e-commerce website built using Django, which provides a range of feat
 2. Log in to the admin panel at `http://localhost:8000/admin` to manage products and user accounts.
 3. create and login to user panel at `http://localhost:8000/` to manage your profile and add items to your cart
 
-## TODO:
-- add Rest APIS
-- add unit tests
-- deploy on cloud
-- improve performance
+
   
   
 
