@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from accounts.forms import RegisterationForm, UserForm, UserProfileForm
 from accounts.models import Account, UserProfile
 from decorators.decorators import passwords_match_validator
-from order.models import Order
+from order.models import Order, OrderProduct
 from django.contrib import messages,auth
 from django.contrib.auth.decorators import login_required
 
@@ -55,7 +55,21 @@ def change_password(request):
         return redirect('change_password')
     return render(request,'accounts/change_password.html')
     
+
+@login_required(login_url="login")
+def order_detail(request,order_id):
+    order_detail=OrderProduct.objects.filter(order__order_number=order_id)
+    order=Order.objects.get(order_number=order_id)
+    sub_total=0
+    for i in order_detail:
+        sub_total += i.product_price* i.quantity
+    context={
+        'order_detail':order_detail,
+        'order':order,
+        'sub_total':sub_total
+    }
     
+    return render(request,'accounts/order_detail.html',context)  
     
 def edit_profile(request):
     userProfile=get_object_or_404(UserProfile,user=request.user)
