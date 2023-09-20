@@ -216,8 +216,10 @@ def logout(request):
 def dashboard(request):
     orders= Order.objects.order_by('created_at').filter(user_id=request.user.id,is_ordered=True)
     order_count=orders.count()
+    useprofile=UserProfile.objects.get(user_id=request.user.id)
     context={
-        'order_count':order_count
+        'order_count':order_count,
+        'useprofile':useprofile
     }
     return render(request,'accounts/dashboard.html',context)
 
